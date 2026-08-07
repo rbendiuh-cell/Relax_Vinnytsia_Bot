@@ -8,11 +8,20 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-<h2>🗺 Relax Vinnytsia</h2>
-
 <div id="map"></div>
+
+<div id="filters">
+    <button data-filter="all">📍 Всі</button>
+    <button data-filter="pool">🏊 Басейн</button>
+    <button data-filter="chan">🛁 Чан</button>
+    <button data-filter="fishing">🎣 Рибалка</button>
+    <button data-filter="gazebo">🏡 Альтанка</button>
+    <button data-filter="house">🏠 Будинок</button>
+    <button data-filter="sauna">🧖 Сауна</button>
+</div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script src="script.js"></script>

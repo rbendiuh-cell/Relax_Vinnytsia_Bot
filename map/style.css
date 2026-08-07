@@ -1,128 +1,48 @@
-body {
+html, body {
     margin: 0;
-    font-family: Arial, sans-serif;
-}
-
-h2 {
-    text-align: center;
-    padding: 12px;
-    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
 }
 
 #map {
-    height: 90vh;
     width: 100%;
+    height: 100vh;
 }
 
-/* Панель фільтрів */
+#filters {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
 
-.map-filters {
-    background: white;
-    padding: 12px;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
-    width: 280px;
-    max-width: calc(100vw - 40px);
-}
-
-.filter-title {
-    font-size: 18px;
-    font-weight: bold;
-    margin-bottom: 10px;
-}
-
-#search {
-    width: 100%;
-    box-sizing: border-box;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 7px;
-    font-size: 15px;
-    margin-bottom: 10px;
-}
-
-.filter-buttons {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     gap: 6px;
+
+    max-width: 95%;
 }
 
-.filter-btn {
-    border: 1px solid #ccc;
-    background: white;
-    border-radius: 7px;
-    padding: 8px 5px;
-    cursor: pointer;
-    font-size: 13px;
-}
-
-.filter-btn:hover {
-    background: #f2f2f2;
-}
-
-.filter-btn.active {
-    background: #2196f3;
-    color: white;
-    border-color: #2196f3;
-}
-
-.reset-btn {
-    width: 100%;
-    margin-top: 10px;
-    padding: 9px;
+#filters button {
     border: none;
-    border-radius: 7px;
-    background: #eee;
-    cursor: pointer;
+    background: white;
+    padding: 9px 13px;
+    border-radius: 20px;
+
     font-size: 14px;
+    font-weight: 600;
+
+    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    cursor: pointer;
 }
 
-.reset-btn:hover {
-    background: #ddd;
+#filters button.active {
+    background: #2e7d32;
+    color: white;
 }
 
-/* Інформація про місце */
-
-.place-popup h3 {
-    margin-top: 0;
-    margin-bottom: 10px;
-}
-
-.place-popup {
-    line-height: 1.5;
-}
-
-.place-popup a {
-    text-decoration: none;
-}
-
-.features {
-    margin-top: 8px;
-    margin-bottom: 8px;
-    padding: 8px;
-    background: #f5f5f5;
-    border-radius: 6px;
-}
-
-/* Для телефону */
-
-@media (max-width: 600px) {
-
-    h2 {
-        font-size: 18px;
-        padding: 10px;
-    }
-
-    #map {
-        height: 92vh;
-    }
-
-    .map-filters {
-        width: 250px;
-    }
-
-    .filter-btn {
-        font-size: 12px;
-        padding: 7px 4px;
-    }
+#filters button:active {
+    transform: scale(0.96);
 }
