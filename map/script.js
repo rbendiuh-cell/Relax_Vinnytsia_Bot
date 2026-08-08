@@ -1,316 +1,418 @@
-const map = L.map("map").setView([49.2328, 28.48097], 10);
+// =====================================================
+// КАРТА
+// =====================================================
 
-L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution: "© OpenStreetMap"
-}).addTo(map);
+const map = L.map("map").setView(
+    [49.2328, 28.48097],
+    10
+);
+
+
+// OpenStreetMap
+
+L.tileLayer(
+    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    {
+        attribution: "© OpenStreetMap contributors"
+    }
+).addTo(map);
+
+
+// =====================================================
+// ДАНІ
+// =====================================================
 
 let allPlaces = [];
 let markers = [];
-let userMarker = null;
 
 
-// =========================
-// ЗАВАНТАЖЕННЯ МІСЦЬ
-// =========================
+// =====================================================
+// ЗАВАНТАЖЕННЯ PLACES.JSON
+// =====================================================
 
-fetch("places.json")
+fetch("./places.json")
     .then(response => {
+
         if (!response.ok) {
-            throw new Error("Не вдалося завантажити places.json");
+            throw new Error(
+                "Не вдалося завантажити places.json"
+            );
         }
 
         return response.json();
     })
+
     .then(places => {
+
+        console.log("Місця завантажені:", places);
 
         allPlaces = places;
 
-        console.log("Завантажено місць:", allPlaces.length);
-
         showPlaces(allPlaces);
     })
+
     .catch(error => {
 
-        console.error("Помилка:", error);
+        console.error(
+            "ПОМИЛКА КАРТИ:",
+            error
+        );
 
-        alert("Не вдалося завантажити карту місць.");
+        alert(
+            "Не вдалося завантажити місця."
+        );
     });
 
 
-// =========================
-// ПОКАЗ МАРКЕРІВ
-// =========================
+// =====================================================
+// ПОКАЗ МІСЦЬ
+// =====================================================
 
 function showPlaces(places) {
 
+    // видаляємо старі маркери
+
     markers.forEach(marker => {
+
         map.removeLayer(marker);
+
     });
 
     markers = [];
 
+
+    // додаємо нові
+
     places.forEach(place => {
 
-        const lat = Number(place.lat);
-        const lng = Number(place.lng);
-
-        if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+        if (
+            place.lat === undefined ||
+            place.lng === undefined
+        ) {
             return;
         }
 
-        const marker = L.marker([lat, lng])
-            .addTo(map);
+
+        const marker = L.marker(
+            [
+                Number(place.lat),
+                Number(place.lng)
+            ]
+        );
+
+
+        marker.addTo(map);
+
 
         let popup = `
             <div style="min-width:220px">
 
-                <h3>${place.name || "Місце відпочинку"}</h3>
+                <h3>
+                    ${place.name || "Без назви"}
+                </h3>
+
+                ${place.city
+                    ? `📍 ${place.city}<br>`
+                    : ""
+                }
 
                 ${place.address
-                    ? `📍 ${place.address}<br><br>`
+                    ? `📌 ${place.address}<br>`
                     : ""
                 }
 
                 ${place.price
-                    ? `💰 ${place.price}<br><br>`
+                    ? `💰 ${place.price}<br>`
                     : ""
                 }
 
                 ${place.phone
-                    ? `📞 ${place.phone}<br><br>`
+                    ? `📞 ${place.phone}<br>`
                     : ""
                 }
 
-                ${
-                    place.instagram
-                        ? `<a href="${place.instagram}" target="_blank">
-                             📷 Instagram
-                           </a><br><br>`
-                        : ""
-                }
+        `;
 
-                ${
-                    place.maps
-                        ? `<a href="${place.maps}" target="_blank">
-                             📍 Google Maps
-                           </a>`
-                        : ""
-                }
 
+        if (place.instagram) {
+
+            popup += `
+                <br>
+                <a
+                    href="${place.instagram}"
+                    target="_blank"
+                >
+                    📷 Instagram
+                </a>
+            `;
+        }
+
+
+        if (place.maps) {
+
+            popup += `
+                <br>
+                <a
+                    href="${place.maps}"
+                    target="_blank"
+                >
+                    📍 Google Maps
+                </a>
+            `;
+        }
+
+
+        popup += `
             </div>
         `;
 
+
         marker.bindPopup(popup);
 
+
         markers.push(marker);
+
     });
 }
 
 
-// =========================
+// =====================================================
 // ФІЛЬТРИ
-// =========================
+// =====================================================
 
-document.querySelectorAll("#filters button").forEach(button => {
+document
+    .querySelectorAll("#filters button")
+    .forEach(button => {
 
-    button.addEventListener("click", () => {
+        button.addEventListener(
+            "click",
+            () => {
 
-        const filter = button.dataset.filter;
+                document
+                    .querySelectorAll("#filters button")
+                    .forEach(btn => {
 
-        document
-            .querySelectorAll("#filters button")
-            .forEach(btn => btn.classList.remove("active"));
+                        btn.classList.remove(
+                            "active"
+                        );
 
-        button.classList.add("active");
-
-
-        if (filter === "all") {
-
-            showPlaces(allPlaces);
-
-            return;
-        }
+                    });
 
 
-        const filteredPlaces = allPlaces.filter(place => {
-
-            const value = String(place[filter] || "")
-                .trim()
-                .toLowerCase();
-
-            return (
-                value === "так" ||
-                value === "є" ||
-                value === "yes" ||
-                value === "true" ||
-                value === "1"
-            );
-        });
+                button.classList.add(
+                    "active"
+                );
 
 
-        showPlaces(filteredPlaces);
+                const filter =
+                    button.dataset.filter;
+
+
+                if (filter === "all") {
+
+                    showPlaces(allPlaces);
+
+                    return;
+                }
+
+
+                const filtered =
+                    allPlaces.filter(place => {
+
+                        const value =
+                            String(
+                                place[filter] || ""
+                            )
+                            .trim()
+                            .toLowerCase();
+
+
+                        return (
+                            value === "так" ||
+                            value === "є" ||
+                            value === "yes" ||
+                            value === "true" ||
+                            value === "1"
+                        );
+
+                    });
+
+
+                showPlaces(filtered);
+
+            }
+        );
+
     });
 
-});
 
+// =====================================================
+// АКТИВНА КНОПКА "ВСІ"
+// =====================================================
 
-// =========================
-// КНОПКА "ВСІ"
-// =========================
+const allButton =
+    document.querySelector(
+        '#filters button[data-filter="all"]'
+    );
 
-const allButton = document.querySelector(
-    '#filters button[data-filter="all"]'
-);
 
 if (allButton) {
-    allButton.classList.add("active");
+
+    allButton.classList.add(
+        "active"
+    );
+
 }
 
 
-// =========================
+// =====================================================
 // ПОРУЧ ЗІ МНОЮ
-// =========================
+// =====================================================
 
-const nearMeButton = document.getElementById("nearMeButton");
+const nearMeButton =
+    document.getElementById(
+        "nearMeButton"
+    );
+
 
 if (nearMeButton) {
 
-    nearMeButton.addEventListener("click", () => {
+    nearMeButton.addEventListener(
+        "click",
+        () => {
 
-        if (!navigator.geolocation) {
+            if (
+                !navigator.geolocation
+            ) {
 
-            alert("Ваш браузер не підтримує визначення місцезнаходження.");
+                alert(
+                    "Ваш браузер не підтримує геолокацію."
+                );
 
-            return;
-        }
-
-
-        navigator.geolocation.getCurrentPosition(
-
-            position => {
-
-                const userLat = position.coords.latitude;
-                const userLng = position.coords.longitude;
+                return;
+            }
 
 
-                // Видаляємо стару позначку користувача
+            navigator.geolocation.getCurrentPosition(
 
-                if (userMarker) {
-                    map.removeLayer(userMarker);
-                }
+                position => {
+
+                    const userLat =
+                        position.coords.latitude;
+
+                    const userLng =
+                        position.coords.longitude;
 
 
-                // Ставимо позначку користувача
+                    // позиція користувача
 
-                userMarker = L.marker([
-                    userLat,
-                    userLng
-                ])
+                    L.marker([
+                        userLat,
+                        userLng
+                    ])
                     .addTo(map)
-                    .bindPopup("📍 Ви знаходитесь тут")
+                    .bindPopup(
+                        "📍 Ви знаходитесь тут"
+                    )
                     .openPopup();
 
 
-                // Переміщуємо карту
+                    map.setView(
+                        [
+                            userLat,
+                            userLng
+                        ],
+                        12
+                    );
 
-                map.setView([
-                    userLat,
-                    userLng
-                ], 12);
 
+                    // рахуємо відстань
 
-                // Рахуємо відстань
+                    allPlaces.forEach(place => {
 
-                const nearby = allPlaces
-                    .map(place => {
-
-                        const lat = Number(place.lat);
-                        const lng = Number(place.lng);
-
-                        return {
-                            ...place,
-                            distance: getDistance(
+                        place.distance =
+                            getDistance(
                                 userLat,
                                 userLng,
-                                lat,
-                                lng
-                            )
-                        };
+                                Number(place.lat),
+                                Number(place.lng)
+                            );
 
-                    })
-                    .filter(place => Number.isFinite(place.distance))
-                    .sort((a, b) => a.distance - b.distance);
+                    });
 
 
-                // Показуємо найближчі
+                    // сортуємо
 
-                showPlaces(nearby);
+                    const nearby =
+                        [...allPlaces].sort(
+                            (a, b) =>
+                                a.distance -
+                                b.distance
+                        );
 
 
-                if (nearby.length > 0) {
-
-                    alert(
-                        "📍 Найближче місце:\n\n" +
-                        nearby[0].name +
-                        "\n" +
-                        nearby[0].distance.toFixed(1) +
-                        " км"
+                    showPlaces(
+                        nearby
                     );
-                }
 
-            },
+                },
 
-            error => {
+                error => {
 
-                if (error.code === 1) {
+                    console.error(
+                        error
+                    );
+
 
                     alert(
                         "📍 Дозвольте доступ до вашого місцезнаходження."
                     );
 
-                } else {
-
-                    alert(
-                        "Не вдалося визначити ваше місцезнаходження."
-                    );
                 }
 
-            },
+            );
 
-            {
-                enableHighAccuracy: true,
-                timeout: 10000,
-                maximumAge: 0
-            }
-
-        );
-
-    });
+        }
+    );
 
 }
 
 
-// =========================
-// РОЗРАХУНОК ВІДСТАНІ
-// =========================
+// =====================================================
+// ВІДСТАНЬ
+// =====================================================
 
-function getDistance(lat1, lon1, lat2, lon2) {
+function getDistance(
+    lat1,
+    lon1,
+    lat2,
+    lon2
+) {
 
     const R = 6371;
 
+
     const dLat =
-        (lat2 - lat1) * Math.PI / 180;
+        (lat2 - lat1) *
+        Math.PI / 180;
+
 
     const dLon =
-        (lon2 - lon1) * Math.PI / 180;
+        (lon2 - lon1) *
+        Math.PI / 180;
 
 
     const a =
         Math.sin(dLat / 2) *
         Math.sin(dLat / 2) +
 
-        Math.cos(lat1 * Math.PI / 180) *
-        Math.cos(lat2 * Math.PI / 180) *
+        Math.cos(
+            lat1 * Math.PI / 180
+        ) *
+
+        Math.cos(
+            lat2 * Math.PI / 180
+        ) *
 
         Math.sin(dLon / 2) *
         Math.sin(dLon / 2);
