@@ -1,10 +1,6 @@
 /* =====================================================
-   RELAX VINNYTSIA — СТИЛЬ КАРТИ
-   ===================================================== */
-
-* {
-    box-sizing: border-box;
-}
+   ОСНОВА
+===================================================== */
 
 html,
 body {
@@ -18,7 +14,7 @@ body {
 
 /* =====================================================
    КАРТА
-   ===================================================== */
+===================================================== */
 
 #map {
     position: fixed;
@@ -30,39 +26,39 @@ body {
 
 /* =====================================================
    ФІЛЬТРИ
-   ===================================================== */
+===================================================== */
 
 #filters {
     position: fixed;
 
-    top: 15px;
+    top: 12px;
     left: 50%;
-
     transform: translateX(-50%);
 
     z-index: 1000;
 
     display: flex;
     align-items: center;
-
     gap: 7px;
 
-    padding: 7px 9px;
+    width: calc(100% - 24px);
+    max-width: 900px;
 
-    max-width: calc(100% - 20px);
+    padding: 7px;
 
     overflow-x: auto;
+    overflow-y: hidden;
+
+    scrollbar-width: none;
 
     background: rgba(255, 255, 255, 0.92);
 
     border-radius: 18px;
 
     box-shadow:
-        0 3px 15px rgba(0, 0, 0, 0.25);
+        0 4px 15px rgba(0, 0, 0, 0.20);
 
     backdrop-filter: blur(8px);
-
-    scrollbar-width: none;
 }
 
 #filters::-webkit-scrollbar {
@@ -71,180 +67,163 @@ body {
 
 /* =====================================================
    КНОПКИ ФІЛЬТРІВ
-   ===================================================== */
+===================================================== */
 
 #filters button {
-
     flex: 0 0 auto;
-
-    width: 48px;
-    height: 48px;
-
-    padding: 0;
 
     border: none;
 
-    border-radius: 50%;
-
     background: white;
 
-    font-size: 23px;
+    color: #1976d2;
+
+    font-size: 15px;
+    font-weight: 600;
+
+    padding: 8px 12px;
+
+    border-radius: 14px;
 
     cursor: pointer;
 
+    white-space: nowrap;
+
     box-shadow:
-        0 2px 7px rgba(0, 0, 0, 0.18);
+        0 2px 7px rgba(0, 0, 0, 0.12);
 
     transition:
         transform 0.15s ease,
         background 0.15s ease,
-        box-shadow 0.15s ease;
+        color 0.15s ease;
 }
 
-/* натискання */
-
-#filters button:active {
-    transform: scale(0.92);
-}
-
-/* активна кнопка */
-
-#filters button.active {
-
-    background: #248a3d;
-
-    color: white;
-
-    transform: scale(1.05);
-
-    box-shadow:
-        0 3px 10px rgba(0, 0, 0, 0.3);
-}
-
-/* =====================================================
-   ПІДКАЗКА ПРИ НАВЕДЕННІ
-   ===================================================== */
+/* наведення */
 
 #filters button:hover {
+    transform: translateY(-1px);
+}
 
-    transform: scale(1.08);
+/* активна */
+
+#filters button.active {
+    background: #238b45;
+    color: white;
+
+    box-shadow:
+        0 3px 10px rgba(35, 139, 69, 0.35);
 }
 
 /* =====================================================
-   "ПОРУЧ ЗІ МНОЮ"
-   ===================================================== */
+   ПОРУЧ ЗІ МНОЮ
+===================================================== */
 
 #nearMe {
-
     position: fixed;
 
-    right: 15px;
-    bottom: 20px;
+    bottom: 18px;
+    left: 18px;
 
     z-index: 1000;
 }
 
 #nearMeButton {
-
-    width: 58px;
-    height: 58px;
-
-    padding: 0;
-
     border: none;
-
-    border-radius: 50%;
 
     background: white;
 
-    font-size: 27px;
+    color: #1976d2;
+
+    font-size: 16px;
+    font-weight: 600;
+
+    padding: 10px 15px;
+
+    border-radius: 16px;
 
     cursor: pointer;
 
     box-shadow:
-        0 3px 15px rgba(0, 0, 0, 0.3);
+        0 4px 14px rgba(0, 0, 0, 0.22);
+
+    backdrop-filter: blur(8px);
 
     transition:
-        transform 0.15s ease;
+        transform 0.15s ease,
+        background 0.15s ease;
 }
 
-#nearMeButton:active {
-
-    transform: scale(0.9);
+#nearMeButton:hover {
+    transform: translateY(-2px);
 }
 
 /* =====================================================
    LEAFLET
-   ===================================================== */
+===================================================== */
 
 .leaflet-control-zoom {
-
-    margin-top: 85px !important;
-
+    margin-top: 75px !important;
     margin-left: 10px !important;
 }
 
 /* =====================================================
    POPUP
-   ===================================================== */
+===================================================== */
 
 .leaflet-popup-content {
-
     font-size: 14px;
-
-    line-height: 1.5;
+    line-height: 1.45;
 }
 
 .leaflet-popup-content h3 {
-
-    font-size: 17px;
-
     margin-top: 0;
+    margin-bottom: 8px;
 }
 
 /* =====================================================
-   МОБІЛЬНИЙ ТЕЛЕФОН
-   ===================================================== */
+   ТЕЛЕФОН
+===================================================== */
 
 @media (max-width: 600px) {
 
     #filters {
+        top: 8px;
+        left: 8px;
+        transform: none;
 
-        top: 10px;
+        width: calc(100% - 16px);
 
-        max-width: calc(100% - 70px);
+        max-width: none;
 
-        padding: 5px 7px;
+        padding: 5px;
+
+        border-radius: 14px;
 
         gap: 5px;
-
-        border-radius: 16px;
     }
 
     #filters button {
+        font-size: 13px;
 
-        width: 42px;
-        height: 42px;
+        padding: 7px 9px;
 
-        font-size: 20px;
+        border-radius: 11px;
     }
 
     #nearMe {
-
-        right: 12px;
-        bottom: 15px;
+        bottom: 14px;
+        left: 14px;
     }
 
     #nearMeButton {
+        font-size: 14px;
 
-        width: 52px;
-        height: 52px;
+        padding: 9px 12px;
 
-        font-size: 24px;
+        border-radius: 13px;
     }
 
     .leaflet-control-zoom {
-
-        margin-top: 70px !important;
+        margin-top: 65px !important;
     }
 }
