@@ -2,8 +2,6 @@
 // RELAX VINNYTSIA — КАРТА
 // =====================================================
 
-console.log("🚀 Relax Vinnytsia map запускається...");
-
 // =====================================================
 // КАРТА
 // =====================================================
@@ -13,10 +11,7 @@ const map = L.map("map").setView(
     10
 );
 
-// =====================================================
-// OPEN STREET MAP
-// =====================================================
-
+// OpenStreetMap
 L.tileLayer(
     "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
     {
@@ -24,6 +19,7 @@ L.tileLayer(
         maxZoom: 19
     }
 ).addTo(map);
+
 
 // =====================================================
 // ЗМІННІ
@@ -33,416 +29,211 @@ let allPlaces = [];
 let markers = [];
 let userMarker = null;
 
+
 // =====================================================
-// ДОПОМІЖНІ ФУНКЦІЇ
+// ЗАВАНТАЖЕННЯ PLACES.JSON
 // =====================================================
 
-// Отримати значення з різних можливих назв поля
-function getValue(place, names) {
+fetch("./places.json")
+    .then(response => {
 
-    for (const name of names) {
-
-        if (
-            place[name] !== undefined &&
-            place[name] !== null &&
-            String(place[name]).trim() !== ""
-        ) {
-            return place[name];
+        if (!response.ok) {
+            throw new Error(
+                "Не вдалося завантажити places.json"
+            );
         }
-    }
 
-    return "";
-}
+        return response.json();
+    })
+
+    .then(places => {
+
+        console.log(
+            "✅ Місця завантажені:",
+            places
+        );
+
+        allPlaces = Array.isArray(places)
+            ? places
+            : [];
+
+        showPlaces(allPlaces);
+
+    })
+
+    .catch(error => {
+
+        console.error(
+            "❌ ПОМИЛКА КАРТИ:",
+            error
+        );
+
+        const mapElement =
+            document.getElementById("map");
+
+        if (mapElement) {
+
+            mapElement.innerHTML = `
+                <div style="
+                    padding:30px;
+                    text-align:center;
+                    font-size:18px;
+                    color:#c00;
+                    background:white;
+                ">
+                    ❌ Не вдалося завантажити місця.
+                    <br><br>
+                    Перевірте файл places.json.
+                </div>
+            `;
+
+        }
+
+    });
 
 
 // =====================================================
-// КООРДИНАТИ
+// ДОПОМОЖНІ ФУНКЦІЇ
 // =====================================================
 
-function getLat(place) {
+// Отримання координати
+function getLatitude(place) {
 
     return Number(
-        getValue(place, [
-            "lat",
-            "latitude",
-            "Latitude",
-            "LAT",
-            "Широта",
-            "широта"
-        ])
+        place.lat ??
+        place.latitude ??
+        place.Latitude
     );
 }
 
 
-function getLng(place) {
+function getLongitude(place) {
 
     return Number(
-        getValue(place, [
-            "lng",
-            "lon",
-            "longitude",
-            "Longitude",
-            "LNG",
-            "Довгота",
-            "довгота"
-        ])
+        place.lng ??
+        place.lon ??
+        place.longitude ??
+        place.Longitude
     );
 }
 
 
-// =====================================================
-// НАЗВА
-// =====================================================
+// Назва
+function getPlaceName(place) {
 
-function getName(place) {
+    return (
+        place.name ||
+        place.title ||
+        place["Назва"] ||
+        "Без назви"
+    );
 
-    return getValue(place, [
-        "name",
-        "Назва",
-        "назва",
-        "title",
-        "Title"
-    ]) || "Місце відпочинку";
 }
 
 
-// =====================================================
-// МІСТО
-// =====================================================
+// Місто
+function getPlaceCity(place) {
 
-function getCity(place) {
+    return (
+        place.city ||
+        place["Місто/СМТ"] ||
+        ""
+    );
 
-    return getValue(place, [
-        "city",
-        "Місто/СМТ",
-        "Місто",
-        "місто",
-        "СМТ"
-    ]);
 }
 
 
-// =====================================================
-// АДРЕСА
-// =====================================================
+// Адреса
+function getPlaceAddress(place) {
 
-function getAddress(place) {
+    return (
+        place.address ||
+        place["Адреса"] ||
+        ""
+    );
 
-    return getValue(place, [
-        "address",
-        "Адреса",
-        "адреса"
-    ]);
 }
 
 
-// =====================================================
-// ТЕЛЕФОН
-// =====================================================
+// Телефон
+function getPlacePhone(place) {
 
-function getPhone(place) {
+    return (
+        place.phone ||
+        place["Телефон"] ||
+        ""
+    );
 
-    return getValue(place, [
-        "phone",
-        "Телефон",
-        "телефон"
-    ]);
 }
 
 
-// =====================================================
-// ЦІНА
-// =====================================================
+// Ціна
+function getPlacePrice(place) {
 
-function getPrice(place) {
+    return (
+        place.price ||
+        place["Ціна"] ||
+        ""
+    );
 
-    return getValue(place, [
-        "price",
-        "Ціна",
-        "ціна"
-    ]);
 }
 
 
-// =====================================================
-// INSTAGRAM
-// =====================================================
-
+// Instagram
 function getInstagram(place) {
 
-    return getValue(place, [
-        "instagram",
-        "Instagram",
-        "інстаграм"
-    ]);
+    return (
+        place.instagram ||
+        place["Instagram"] ||
+        ""
+    );
+
 }
 
 
-// =====================================================
-// GOOGLE MAPS
-// =====================================================
-
+// Google Maps
 function getGoogleMaps(place) {
 
-    return getValue(place, [
-        "maps",
-        "Google Maps",
-        "GoogleMaps",
-        "google_maps",
-        "googleMaps"
-    ]);
+    return (
+        place.maps ||
+        place.googleMaps ||
+        place["Google Maps"] ||
+        ""
+    );
+
 }
 
 
-// =====================================================
-// ПЕРЕВІРКА "ТАК"
-// =====================================================
-
+// Перевірка "так"
 function isYes(value) {
 
     if (value === undefined || value === null) {
         return false;
     }
 
-    const text = String(value)
-        .trim()
-        .toLowerCase();
+    const text =
+        String(value)
+            .trim()
+            .toLowerCase();
 
     return (
         text === "так" ||
         text === "є" ||
         text === "yes" ||
         text === "true" ||
-        text === "1" ||
-        text === "✔" ||
-        text === "+"
+        text === "1"
     );
+
 }
 
 
 // =====================================================
-// ФІЛЬТРИ
-// =====================================================
-
-function hasFeature(place, filter) {
-
-    switch (filter) {
-
-        case "pool":
-            return (
-                isYes(getValue(place, [
-                    "pool",
-                    "Басейн"
-                ]))
-                ||
-                isYes(getValue(place, [
-                    "Басейн сезонний"
-                ]))
-                ||
-                isYes(getValue(place, [
-                    "Басейн цілорічний"
-                ]))
-            );
-
-
-        case "chan":
-            return isYes(
-                getValue(place, [
-                    "chan",
-                    "Чан"
-                ])
-            );
-
-
-        case "fishing":
-            return isYes(
-                getValue(place, [
-                    "fishing",
-                    "Рибалка"
-                ])
-            );
-
-
-        case "gazebo":
-            return isYes(
-                getValue(place, [
-                    "gazebo",
-                    "Альтанка"
-                ])
-            );
-
-
-        case "house":
-            return isYes(
-                getValue(place, [
-                    "house",
-                    "Будинок"
-                ])
-            );
-
-
-        case "sauna":
-            return (
-                isYes(getValue(place, [
-                    "sauna",
-                    "Сауна",
-                    "Сауна/Баня"
-                ]))
-            );
-
-
-        case "seasonal":
-            return isYes(
-                getValue(place, [
-                    "Басейн сезонний",
-                    "seasonal_pool"
-                ])
-            );
-
-
-        case "yearround":
-            return isYes(
-                getValue(place, [
-                    "Басейн цілорічний",
-                    "year_round_pool"
-                ])
-            );
-
-
-        case "two":
-            return isYes(
-                getValue(place, [
-                    "Для двох",
-                    "for_two"
-                ])
-            );
-
-
-        case "company":
-            return isYes(
-                getValue(place, [
-                    "Для компанії",
-                    "for_company"
-                ])
-            );
-
-
-        default:
-            return false;
-    }
-}
-
-
-// =====================================================
-// ЗАВАНТАЖЕННЯ PLACES.JSON
-// =====================================================
-
-async function loadPlaces() {
-
-    console.log("📂 Завантажую places.json...");
-
-    try {
-
-        const response = await fetch("./places.json", {
-            cache: "no-store"
-        });
-
-
-        if (!response.ok) {
-
-            throw new Error(
-                `HTTP ${response.status} — places.json не знайдено`
-            );
-        }
-
-
-        const data = await response.json();
-
-
-        console.log("✅ places.json завантажено");
-        console.log("📍 Кількість записів:", data.length);
-
-
-        if (!Array.isArray(data)) {
-
-            throw new Error(
-                "places.json має бути масивом []"
-            );
-        }
-
-
-        allPlaces = data;
-
-
-        // показуємо всі місця
-
-        showPlaces(allPlaces);
-
-
-        // після завантаження оновлюємо карту
-
-        setTimeout(() => {
-            map.invalidateSize();
-        }, 300);
-
-
-    } catch (error) {
-
-        console.error(
-            "❌ ПОМИЛКА ЗАВАНТАЖЕННЯ:",
-            error
-        );
-
-
-        showMapError(
-            "Не вдалося завантажити places.json"
-        );
-    }
-}
-
-
-// =====================================================
-// ПОКАЗ ПОМИЛКИ
-// =====================================================
-
-function showMapError(message) {
-
-    const errorBox =
-        document.createElement("div");
-
-    errorBox.style.position = "absolute";
-    errorBox.style.top = "20px";
-    errorBox.style.left = "50%";
-    errorBox.style.transform = "translateX(-50%)";
-    errorBox.style.zIndex = "9999";
-    errorBox.style.background = "white";
-    errorBox.style.color = "#b00020";
-    errorBox.style.padding = "15px 20px";
-    errorBox.style.borderRadius = "10px";
-    errorBox.style.boxShadow =
-        "0 3px 15px rgba(0,0,0,0.3)";
-    errorBox.style.fontWeight = "bold";
-
-    errorBox.innerHTML =
-        "⚠️ " + message;
-
-    document.body.appendChild(errorBox);
-}
-
-
-// =====================================================
-// ПОКАЗ МІСЦЬ НА КАРТІ
+// ПОКАЗ МІСЦЬ
 // =====================================================
 
 function showPlaces(places) {
 
-    console.log(
-        "🗺 Показую місця:",
-        places.length
-    );
-
-
-    // видаляємо старі маркери
+    // Видаляємо старі маркери
 
     markers.forEach(marker => {
 
@@ -450,35 +241,51 @@ function showPlaces(places) {
 
     });
 
-
     markers = [];
 
 
-    // додаємо нові
+    // Якщо місць немає
 
-    places.forEach((place, index) => {
+    if (!places || places.length === 0) {
 
-        const lat = getLat(place);
-        const lng = getLng(place);
+        console.log(
+            "ℹ️ Місць для показу немає."
+        );
+
+        return;
+
+    }
 
 
-        // перевіряємо координати
+    // Додаємо маркери
+
+    places.forEach(place => {
+
+        const lat =
+            getLatitude(place);
+
+        const lng =
+            getLongitude(place);
+
+
+        // Перевіряємо координати
 
         if (
             !Number.isFinite(lat) ||
-            !Number.isFinite(lng) ||
-            lat === 0 ||
-            lng === 0
+            !Number.isFinite(lng)
         ) {
 
             console.warn(
-                `⚠️ Місце №${index + 1} без координат:`,
+                "⚠️ Немає координат:",
                 place
             );
 
             return;
+
         }
 
+
+        // Створюємо маркер
 
         const marker =
             L.marker([
@@ -491,171 +298,193 @@ function showPlaces(places) {
 
 
         // =================================================
-        // ДАНІ
+        // POPUP
         // =================================================
 
         const name =
-            getName(place);
+            getPlaceName(place);
 
         const city =
-            getCity(place);
+            getPlaceCity(place);
 
         const address =
-            getAddress(place);
+            getPlaceAddress(place);
 
         const phone =
-            getPhone(place);
+            getPlacePhone(place);
 
         const price =
-            getPrice(place);
+            getPlacePrice(place);
 
         const instagram =
             getInstagram(place);
 
-        const googleMaps =
+        const maps =
             getGoogleMaps(place);
 
 
-        // =================================================
-        // POPUP
-        // =================================================
-
         let popup = `
+
             <div style="
-                min-width:220px;
+                min-width:240px;
+                max-width:300px;
                 font-family:Arial,sans-serif;
-                line-height:1.5;
             ">
 
                 <h3 style="
-                    margin-top:0;
-                    margin-bottom:8px;
+                    margin:0 0 10px 0;
+                    font-size:20px;
+                    color:#1683d8;
                 ">
-                    ${escapeHtml(name)}
+                    ${name}
                 </h3>
+
         `;
 
+
+        // Місто
 
         if (city) {
 
             popup += `
-                📍 ${escapeHtml(city)}<br>
+                <div style="
+                    margin:5px 0;
+                ">
+                    📍 ${city}
+                </div>
             `;
+
         }
 
+
+        // Адреса
 
         if (address) {
 
             popup += `
-                📌 ${escapeHtml(address)}<br>
+                <div style="
+                    margin:5px 0;
+                ">
+                    📌 ${address}
+                </div>
             `;
+
         }
 
+
+        // Ціна
 
         if (price) {
 
             popup += `
-                💰 ${escapeHtml(price)}<br>
+                <div style="
+                    margin:5px 0;
+                ">
+                    💰 ${price}
+                </div>
             `;
+
         }
 
+
+        // Телефон
 
         if (phone) {
 
             popup += `
-                📞 ${escapeHtml(phone)}<br>
+                <div style="
+                    margin:5px 0;
+                ">
+                    📞 ${phone}
+                </div>
             `;
+
         }
 
 
         // =================================================
-        // ПОСЛУГИ
+        // ВІДСТАНЬ
         // =================================================
 
-        const features = [];
-
-
-        if (hasFeature(place, "pool")) {
-            features.push("🏊 Басейн");
-        }
-
-
-        if (hasFeature(place, "gazebo")) {
-            features.push("🏡 Альтанка");
-        }
-
-
-        if (hasFeature(place, "house")) {
-            features.push("🏠 Будинок");
-        }
-
-
-        if (hasFeature(place, "chan")) {
-            features.push("🛁 Чан");
-        }
-
-
-        if (hasFeature(place, "sauna")) {
-            features.push("🧖 Сауна");
-        }
-
-
-        if (hasFeature(place, "fishing")) {
-            features.push("🎣 Рибалка");
-        }
-
-
-        if (hasFeature(place, "two")) {
-            features.push("❤️ Для двох");
-        }
-
-
-        if (hasFeature(place, "company")) {
-            features.push("🥳 Для компанії");
-        }
-
-
-        if (features.length > 0) {
+        if (
+            place.distance !== undefined &&
+            Number.isFinite(place.distance)
+        ) {
 
             popup += `
-                <br>
-                <b>✨ Є на території:</b><br>
-                ${features.join("<br>")}
+
+                <div style="
+                    margin-top:10px;
+                    padding:8px;
+                    background:#e8f5e9;
+                    border-radius:8px;
+                    color:#16833a;
+                    font-weight:bold;
+                ">
+                    📍 Відстань:
+                    ${place.distance.toFixed(1)} км
+                </div>
+
             `;
+
         }
 
 
         // =================================================
-        // ПОСИЛАННЯ
+        // КНОПКИ
         // =================================================
 
         if (instagram) {
 
             popup += `
-                <br><br>
-                <a
-                    href="${safeUrl(instagram)}"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    📷 Instagram
-                </a>
+
+                <div style="
+                    margin-top:10px;
+                ">
+
+                    <a
+                        href="${instagram}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style="
+                            text-decoration:none;
+                            font-weight:bold;
+                        "
+                    >
+                        📷 Instagram
+                    </a>
+
+                </div>
+
             `;
+
         }
 
 
-        if (googleMaps) {
+        if (maps) {
 
             popup += `
-                <br>
-                <a
-                    href="${safeUrl(googleMaps)}"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    📍 Google Maps
-                </a>
+
+                <div style="
+                    margin-top:8px;
+                ">
+
+                    <a
+                        href="${maps}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style="
+                            text-decoration:none;
+                            font-weight:bold;
+                        "
+                    >
+                        📍 Google Maps
+                    </a>
+
+                </div>
+
             `;
+
         }
 
 
@@ -671,114 +500,164 @@ function showPlaces(places) {
 
     });
 
-
-    console.log(
-        "📌 Маркерів на карті:",
-        markers.length
-    );
 }
 
 
 // =====================================================
-// ЗАХИСТ HTML
+// ФІЛЬТРИ
 // =====================================================
 
-function escapeHtml(value) {
+document
+    .querySelectorAll("#filters button")
+    .forEach(button => {
 
-    return String(value)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-}
+        button.addEventListener(
+            "click",
+            () => {
 
+                // Активна кнопка
 
-// =====================================================
-// БЕЗПЕЧНЕ ПОСИЛАННЯ
-// =====================================================
+                document
+                    .querySelectorAll(
+                        "#filters button"
+                    )
+                    .forEach(btn => {
 
-function safeUrl(url) {
+                        btn.classList.remove(
+                            "active"
+                        );
 
-    return String(url).trim();
-}
-
-
-// =====================================================
-// ФІЛЬТРИ КАРТИ
-// =====================================================
-
-const filterButtons =
-    document.querySelectorAll(
-        "#filters button"
-    );
+                    });
 
 
-filterButtons.forEach(button => {
-
-    button.addEventListener(
-        "click",
-        () => {
-
-            // активна кнопка
-
-            filterButtons.forEach(btn => {
-
-                btn.classList.remove(
+                button.classList.add(
                     "active"
                 );
 
-            });
+
+                const filter =
+                    button.dataset.filter;
 
 
-            button.classList.add(
-                "active"
-            );
-
-
-            const filter =
-                button.dataset.filter;
-
-
-            console.log(
-                "🔎 Фільтр:",
-                filter
-            );
-
-
-            // ВСІ
-
-            if (filter === "all") {
-
-                showPlaces(allPlaces);
-
-                return;
-            }
-
-
-            // фільтрація
-
-            const filtered =
-                allPlaces.filter(place =>
-                    hasFeature(
-                        place,
-                        filter
-                    )
+                console.log(
+                    "🔎 Фільтр:",
+                    filter
                 );
 
 
-            console.log(
-                "🔎 Знайдено:",
-                filtered.length
+                // =================================================
+                // ВСІ
+                // =================================================
+
+                if (filter === "all") {
+
+                    showPlaces(
+                        allPlaces
+                    );
+
+                    return;
+
+                }
+
+
+                // =================================================
+                // ФІЛЬТР
+                // =================================================
+
+                const filtered =
+                    allPlaces.filter(
+                        place => {
+
+                            return checkFilter(
+                                place,
+                                filter
+                            );
+
+                        }
+                    );
+
+
+                console.log(
+                    "Знайдено:",
+                    filtered.length
+                );
+
+
+                showPlaces(
+                    filtered
+                );
+
+            }
+        );
+
+    });
+
+
+// =====================================================
+// ПЕРЕВІРКА ФІЛЬТРА
+// =====================================================
+
+function checkFilter(place, filter) {
+
+    switch (filter) {
+
+        case "pool":
+
+            return (
+                isYes(place.pool) ||
+                isYes(place["Басейн"]) ||
+                isYes(place["Басейн сезонний"]) ||
+                isYes(place["Басейн цілорічний"])
             );
 
 
-            showPlaces(filtered);
+        case "chan":
 
-        }
-    );
+            return (
+                isYes(place.chan) ||
+                isYes(place["Чан"])
+            );
 
-});
+
+        case "fishing":
+
+            return (
+                isYes(place.fishing) ||
+                isYes(place["Рибалка"])
+            );
+
+
+        case "gazebo":
+
+            return (
+                isYes(place.gazebo) ||
+                isYes(place["Альтанка"])
+            );
+
+
+        case "house":
+
+            return (
+                isYes(place.house) ||
+                isYes(place["Будинок"])
+            );
+
+
+        case "sauna":
+
+            return (
+                isYes(place.sauna) ||
+                isYes(place["Сауна/Баня"])
+            );
+
+
+        default:
+
+            return false;
+
+    }
+
+}
 
 
 // =====================================================
@@ -796,6 +675,7 @@ if (allButton) {
     allButton.classList.add(
         "active"
     );
+
 }
 
 
@@ -816,9 +696,11 @@ if (nearMeButton) {
         () => {
 
             console.log(
-                "📍 Запит геолокації..."
+                "📍 Натиснуто Поруч зі мною"
             );
 
+
+            // Перевірка геолокації
 
             if (!navigator.geolocation) {
 
@@ -827,7 +709,16 @@ if (nearMeButton) {
                 );
 
                 return;
+
             }
+
+
+            // Змінюємо кнопку
+
+            nearMeButton.disabled = true;
+
+            nearMeButton.innerHTML =
+                "📍 Визначаю місцезнаходження...";
 
 
             navigator.geolocation.getCurrentPosition(
@@ -842,23 +733,24 @@ if (nearMeButton) {
 
 
                     console.log(
-                        "📍 Ваша позиція:",
+                        "📍 Моє місцезнаходження:",
                         userLat,
                         userLng
                     );
 
 
-                    // видаляємо стару позицію
+                    // =================================================
+                    // МАРКЕР КОРИСТУВАЧА
+                    // =================================================
 
                     if (userMarker) {
 
                         map.removeLayer(
                             userMarker
                         );
+
                     }
 
-
-                    // створюємо нову
 
                     userMarker =
                         L.marker([
@@ -871,10 +763,7 @@ if (nearMeButton) {
                         );
 
 
-                    userMarker.openPopup();
-
-
-                    // переміщуємо карту
+                    // Центруємо карту
 
                     map.setView(
                         [
@@ -885,46 +774,60 @@ if (nearMeButton) {
                     );
 
 
-                    // розрахунок відстані
+                    // =================================================
+                    // РАХУЄМО ВІДСТАНЬ
+                    // =================================================
 
-                    const nearby =
-                        allPlaces
-                            .filter(place => {
+                    allPlaces.forEach(
+                        place => {
 
-                                const lat =
-                                    getLat(place);
-
-                                const lng =
-                                    getLng(place);
-
-
-                                return (
-                                    Number.isFinite(lat) &&
-                                    Number.isFinite(lng)
+                            const lat =
+                                getLatitude(
+                                    place
                                 );
 
-                            })
-                            .map(place => {
-
-                                const lat =
-                                    getLat(place);
-
-                                const lng =
-                                    getLng(place);
+                            const lng =
+                                getLongitude(
+                                    place
+                                );
 
 
-                                return {
-                                    ...place,
-                                    distance:
-                                        getDistance(
-                                            userLat,
-                                            userLng,
-                                            lat,
-                                            lng
-                                        )
-                                };
+                            if (
+                                Number.isFinite(lat) &&
+                                Number.isFinite(lng)
+                            ) {
 
-                            })
+                                place.distance =
+                                    getDistance(
+                                        userLat,
+                                        userLng,
+                                        lat,
+                                        lng
+                                    );
+
+                            } else {
+
+                                place.distance =
+                                    Infinity;
+
+                            }
+
+                        }
+                    );
+
+
+                    // =================================================
+                    // СОРТУЄМО
+                    // =================================================
+
+                    const nearby =
+                        [...allPlaces]
+                            .filter(
+                                place =>
+                                    Number.isFinite(
+                                        place.distance
+                                    )
+                            )
                             .sort(
                                 (a, b) =>
                                     a.distance -
@@ -933,12 +836,61 @@ if (nearMeButton) {
 
 
                     console.log(
-                        "📍 Місця поруч:",
+                        "📍 Відсортовані місця:",
                         nearby
                     );
 
 
-                    showPlaces(nearby);
+                    // =================================================
+                    // ПОКАЗУЄМО НА КАРТІ
+                    // =================================================
+
+                    showPlaces(
+                        nearby
+                    );
+
+
+                    // =================================================
+                    // НАЙБЛИЖЧЕ МІСЦЕ
+                    // =================================================
+
+                    if (
+                        nearby.length > 0
+                    ) {
+
+                        const nearest =
+                            nearby[0];
+
+
+                        console.log(
+                            "⭐ Найближче:",
+                            nearest
+                        );
+
+
+                        showNearestPlace(
+                            nearest
+                        );
+
+
+                    } else {
+
+                        hideNearestPlace();
+
+                        alert(
+                            "Місць з правильними координатами не знайдено."
+                        );
+
+                    }
+
+
+                    // Повертаємо кнопку
+
+                    nearMeButton.disabled =
+                        false;
+
+                    nearMeButton.innerHTML =
+                        "📍 Поруч зі мною";
 
                 },
 
@@ -951,15 +903,35 @@ if (nearMeButton) {
                     );
 
 
-                    alert(
-                        "📍 Не вдалося визначити ваше місцезнаходження. Дозвольте браузеру доступ до геолокації."
-                    );
+                    nearMeButton.disabled =
+                        false;
+
+                    nearMeButton.innerHTML =
+                        "📍 Поруч зі мною";
+
+
+                    if (
+                        error.code === 1
+                    ) {
+
+                        alert(
+                            "📍 Дозвольте доступ до вашого місцезнаходження."
+                        );
+
+                    } else {
+
+                        alert(
+                            "📍 Не вдалося визначити ваше місцезнаходження."
+                        );
+
+                    }
 
                 },
 
+
                 {
                     enableHighAccuracy: true,
-                    timeout: 10000,
+                    timeout: 15000,
                     maximumAge: 0
                 }
 
@@ -967,11 +939,134 @@ if (nearMeButton) {
 
         }
     );
+
 }
 
 
 // =====================================================
-// ВІДСТАНЬ
+// НАЙБЛИЖЧЕ МІСЦЕ
+// =====================================================
+
+function showNearestPlace(place) {
+
+    let box =
+        document.getElementById(
+            "nearestPlace"
+        );
+
+
+    if (!box) {
+
+        box =
+            document.createElement(
+                "div"
+            );
+
+        box.id =
+            "nearestPlace";
+
+
+        document.body.appendChild(
+            box
+        );
+
+    }
+
+
+    box.innerHTML = `
+
+        <div style="
+            font-size:13px;
+            margin-bottom:4px;
+        ">
+            ⭐ Найближче місце
+        </div>
+
+        <div style="
+            font-size:18px;
+            font-weight:bold;
+        ">
+            ${getPlaceName(place)}
+        </div>
+
+        <div style="
+            margin-top:5px;
+            font-size:16px;
+        ">
+            📍 ${place.distance.toFixed(1)} км
+        </div>
+
+    `;
+
+
+    box.style.display =
+        "block";
+
+
+    // Натискання на блок
+
+    box.onclick = () => {
+
+        const lat =
+            getLatitude(place);
+
+        const lng =
+            getLongitude(place);
+
+
+        map.setView(
+            [lat, lng],
+            14
+        );
+
+
+        // Знаходимо відповідний маркер
+
+        const index =
+            allPlaces.indexOf(
+                place
+            );
+
+
+        if (
+            index >= 0 &&
+            markers[index]
+        ) {
+
+            markers[index]
+                .openPopup();
+
+        }
+
+    };
+
+}
+
+
+// =====================================================
+// СХОВАТИ НАЙБЛИЖЧЕ
+// =====================================================
+
+function hideNearestPlace() {
+
+    const box =
+        document.getElementById(
+            "nearestPlace"
+        );
+
+
+    if (box) {
+
+        box.style.display =
+            "none";
+
+    }
+
+}
+
+
+// =====================================================
+// ВІДСТАНЬ МІЖ ДВОМА ТОЧКАМИ
 // =====================================================
 
 function getDistance(
@@ -986,12 +1081,14 @@ function getDistance(
 
     const dLat =
         (lat2 - lat1) *
-        Math.PI / 180;
+        Math.PI /
+        180;
 
 
     const dLon =
         (lon2 - lon1) *
-        Math.PI / 180;
+        Math.PI /
+        180;
 
 
     const a =
@@ -1019,15 +1116,14 @@ function getDistance(
 
 
     return R * c;
+
 }
 
 
 // =====================================================
-// ЗАПУСК
+// КІНЕЦЬ
 // =====================================================
 
-loadPlaces();
-
 console.log(
-    "✅ Relax Vinnytsia map готова"
+    "✅ Relax Vinnytsia карта запущена"
 );
