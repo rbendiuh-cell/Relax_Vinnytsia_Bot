@@ -47,16 +47,22 @@ html, body {
     transform: scale(0.96);
 }
 #nearMeButton {
-    position: absolute;
-    top: 15px;
-    left: 15px;
-    z-index: 1000;
-    padding: 10px 15px;
+    display: block !important;
+    visibility: visible !important;
+    position: absolute !important;
+
+    top: 190px !important;
+    left: 20px !important;
+
+    z-index: 1000 !important;
+
+    padding: 10px 14px;
     border: none;
-    border-radius: 10px;
+    border-radius: 12px;
     background: white;
-    font-size: 16px;
+    color: #222;
+    font-size: 15px;
     font-weight: bold;
     cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.25);
 }
