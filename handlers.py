@@ -1,18 +1,17 @@
-```python
 from aiogram import Router, F
 from aiogram.filters import CommandStart, Command
 from aiogram.types import (
     Message,
     CallbackQuery,
     InlineKeyboardMarkup,
-    InlineKeyboardButton,
+    InlineKeyboardButton
 )
 
 from keyboards import main_menu, places_keyboard
 from database import (
     get_all_places,
     get_by_column,
-    get_place_by_id,
+    get_place_by_id
 )
 from users import save_user, users_count
 
@@ -48,9 +47,7 @@ async def all_places(message: Message):
     places = get_all_places()
 
     if not places:
-        await message.answer(
-            "Наразі місць не знайдено."
-        )
+        await message.answer("Нічого не знайдено.")
         return
 
     await message.answer(
@@ -69,9 +66,7 @@ async def pools(message: Message):
     places = get_by_column("Басейн")
 
     if not places:
-        await message.answer(
-            "🏊 Місць з басейном не знайдено."
-        )
+        await message.answer("Нічого не знайдено.")
         return
 
     await message.answer(
@@ -90,9 +85,7 @@ async def gazebos(message: Message):
     places = get_by_column("Альтанка")
 
     if not places:
-        await message.answer(
-            "🛖 Місць з альтанками не знайдено."
-        )
+        await message.answer("Нічого не знайдено.")
         return
 
     await message.answer(
@@ -111,9 +104,7 @@ async def fishing(message: Message):
     places = get_by_column("Рибалка")
 
     if not places:
-        await message.answer(
-            "🎣 Місць для риболовлі не знайдено."
-        )
+        await message.answer("Нічого не знайдено.")
         return
 
     await message.answer(
@@ -129,37 +120,22 @@ async def fishing(message: Message):
 @router.message(F.text == "🧖 Чани та сауни")
 async def sauna(message: Message):
 
-    places = []
+    places = get_by_column("Чан")
+    places += get_by_column("Сауна/Баня")
 
-    places.extend(
-        get_by_column("Чан")
-    )
-
-    places.extend(
-        get_by_column("Сауна/Баня")
-    )
-
-    # Прибираємо дублікати
     unique = []
     names = set()
 
     for place in places:
 
-        name = place.get(
-            "Назва",
-            ""
-        )
+        name = place.get("Назва", "")
 
         if name not in names:
-
             names.add(name)
-
             unique.append(place)
 
     if not unique:
-        await message.answer(
-            "🧖 Місць з чанами або саунами не знайдено."
-        )
+        await message.answer("Нічого не знайдено.")
         return
 
     await message.answer(
@@ -178,9 +154,7 @@ async def houses(message: Message):
     places = get_by_column("Будинок")
 
     if not places:
-        await message.answer(
-            "🏠 Будинків не знайдено."
-        )
+        await message.answer("Нічого не знайдено.")
         return
 
     await message.answer(
@@ -199,9 +173,7 @@ async def for_two(message: Message):
     places = get_by_column("Для двох")
 
     if not places:
-        await message.answer(
-            "❤️ Місць для двох не знайдено."
-        )
+        await message.answer("Нічого не знайдено.")
         return
 
     await message.answer(
@@ -220,9 +192,7 @@ async def for_company(message: Message):
     places = get_by_column("Для компанії")
 
     if not places:
-        await message.answer(
-            "🥳 Місць для компанії не знайдено."
-        )
+        await message.answer("Нічого не знайдено.")
         return
 
     await message.answer(
@@ -238,14 +208,10 @@ async def for_company(message: Message):
 @router.message(F.text == "☀️ Басейн сезонний")
 async def seasonal_pool(message: Message):
 
-    places = get_by_column(
-        "Басейн сезонний"
-    )
+    places = get_by_column("Басейн сезонний")
 
     if not places:
-        await message.answer(
-            "☀️ Сезонних басейнів не знайдено."
-        )
+        await message.answer("Нічого не знайдено.")
         return
 
     await message.answer(
@@ -261,14 +227,10 @@ async def seasonal_pool(message: Message):
 @router.message(F.text == "🏊 Басейн цілорічний")
 async def all_year_pool(message: Message):
 
-    places = get_by_column(
-        "Басейн цілорічний"
-    )
+    places = get_by_column("Басейн цілорічний")
 
     if not places:
-        await message.answer(
-            "🏊 Цілорічних басейнів не знайдено."
-        )
+        await message.answer("Нічого не знайдено.")
         return
 
     await message.answer(
@@ -289,10 +251,7 @@ async def map_places(message: Message):
             [
                 InlineKeyboardButton(
                     text="🗺 Відкрити карту",
-                    url=(
-                        "https://rbendiuh-cell.github.io/"
-                        "Relax_Vinnytsia_Bot/map/"
-                    )
+                    url="https://rbendiuh-cell.github.io/Relax_Vinnytsia_Bot/map/"
                 )
             ]
         ]
@@ -300,45 +259,9 @@ async def map_places(message: Message):
 
     await message.answer(
         "🗺 <b>Relax Vinnytsia — карта місць</b>\n\n"
-        "На карті можна переглянути місця "
-        "відпочинку Вінниці та Вінницької області.\n\n"
-        "📍 Усі місця\n"
-        "🏊 Басейни\n"
-        "🛖 Альтанки\n"
-        "🏠 Будинки\n"
-        "🎣 Риболовля\n"
-        "🧖 Чани та сауни\n\n"
-        "👇 Натисніть кнопку нижче:",
-        parse_mode="HTML",
-        reply_markup=keyboard
-    )
-
-
-# =====================================================
-# КАРТА МІСЦЬ
-# =====================================================
-
-@router.message(F.text == "🗺 Карта місць")
-async def map_places_old(message: Message):
-
-    keyboard = InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(
-                    text="🗺 Відкрити карту",
-                    url=(
-                        "https://rbendiuh-cell.github.io/"
-                        "Relax_Vinnytsia_Bot/map/"
-                    )
-                )
-            ]
-        ]
-    )
-
-    await message.answer(
-        "🗺 <b>Relax Vinnytsia — карта місць</b>\n\n"
-        "Відкрийте карту, щоб переглянути "
-        "всі місця та скористатися фільтрами.",
+        "На карті можна переглянути всі місця "
+        "відпочинку Вінниці та області.\n\n"
+        "👇 Натисніть кнопку нижче.",
         parse_mode="HTML",
         reply_markup=keyboard
     )
@@ -355,14 +278,15 @@ async def about(message: Message):
         "🤖 <b>Relax Vinnytsia</b>\n\n"
         "Каталог місць для відпочинку "
         "у Вінниці та Вінницькій області.\n\n"
-        "🏡 Місця для відпочинку\n"
         "🏊 Басейни\n"
         "🛖 Альтанки\n"
         "🏠 Будинки\n"
         "🎣 Риболовля\n"
-        "🧖 Чани та сауни\n\n"
-        "🗺 Також доступна інтерактивна карта "
-        "з усіма місцями.",
+        "🧖 Чани та сауни\n"
+        "❤️ Місця для двох\n"
+        "🥳 Місця для компанії\n\n"
+        "📍 Обирайте місце та переглядайте "
+        "контакти, Instagram і Google Maps.",
         parse_mode="HTML"
     )
 
@@ -371,21 +295,12 @@ async def about(message: Message):
 # ПОКАЗ МІСЦЯ
 # =====================================================
 
-@router.callback_query(
-    F.data.startswith("place_")
-)
-async def show_place(
-    callback: CallbackQuery
-):
+@router.callback_query(F.data.startswith("place_"))
+async def show_place(callback: CallbackQuery):
 
-    place_id = callback.data.split(
-        "_",
-        1
-    )[1]
+    place_id = callback.data.split("_", 1)[1]
 
-    place = get_place_by_id(
-        place_id
-    )
+    place = get_place_by_id(place_id)
 
     if not place:
 
@@ -396,24 +311,14 @@ async def show_place(
         return
 
 
-    # =================================================
-    # НАЗВА
-    # =================================================
-
-    name = place.get(
-        "Назва",
-        "Без назви"
-    )
-
+    # -------------------------------------------------
+    # ОСНОВНА ІНФОРМАЦІЯ
+    # -------------------------------------------------
 
     text = (
-        f"🏡 <b>{name}</b>\n\n"
+        f"🏡 <b>{place.get('Назва', 'Без назви')}</b>\n\n"
     )
 
-
-    # =================================================
-    # МІСТО
-    # =================================================
 
     if place.get("Місто/СМТ"):
 
@@ -422,20 +327,12 @@ async def show_place(
         )
 
 
-    # =================================================
-    # АДРЕСА
-    # =================================================
-
     if place.get("Адреса"):
 
         text += (
             f"📌 {place['Адреса']}\n"
         )
 
-
-    # =================================================
-    # ЦІНА
-    # =================================================
 
     if place.get("Ціна"):
 
@@ -444,9 +341,9 @@ async def show_place(
         )
 
 
-    # =================================================
+    # -------------------------------------------------
     # ОСОБЛИВОСТІ
-    # =================================================
+    # -------------------------------------------------
 
     features = []
 
@@ -547,39 +444,51 @@ async def show_place(
             "\n✨ <b>Є на території:</b>\n"
         )
 
-        text += (
-            "\n".join(features)
+        text += "\n".join(
+            features
         )
-
-
-    # =================================================
-    # ТЕЛЕФОН У ТЕКСТІ НЕ ПОКАЗУЄМО
-    # =================================================
-    #
-    # Телефон буде окремою кнопкою
-    # "📞 Подзвонити"
-    #
-
-
-    # =================================================
-    # КНОПКИ
-    # =================================================
-
-    buttons = []
 
 
     # -------------------------------------------------
     # ТЕЛЕФОН
     # -------------------------------------------------
 
-    if place.get("Телефон"):
+    phone = str(
+        place.get("Телефон", "")
+    ).strip()
+
+
+    if phone:
+
+        text += (
+            f"\n\n📞 {phone}"
+        )
+
+
+    # -------------------------------------------------
+    # КНОПКИ
+    # -------------------------------------------------
+
+    buttons = []
+
+
+    # -------------------------------------------------
+    # КНОПКА ДЗВІНКА
+    # -------------------------------------------------
+
+    if phone:
+
+        phone_number = "".join(
+            char
+            for char in phone
+            if char.isdigit() or char == "+"
+        )
+
 
         buttons.append([
             InlineKeyboardButton(
                 text="📞 Подзвонити",
-                callback_data=(
-                    f"call_{place_id}"
-                )
+                url=f"tel:{phone_number}"
             )
         ])
 
@@ -598,7 +507,7 @@ async def show_place(
                 text="📷 Instagram",
                 url=str(
                     place["Instagram"]
-                ).strip()
+                )
             )
         )
 
@@ -610,7 +519,7 @@ async def show_place(
                 text="📍 Google Maps",
                 url=str(
                     place["Google Maps"]
-                ).strip()
+                )
             )
         )
 
@@ -637,10 +546,6 @@ async def show_place(
     )
 
 
-    # =================================================
-    # ВІДПРАВЛЯЄМО
-    # =================================================
-
     await callback.message.answer(
         text,
         parse_mode="HTML",
@@ -652,86 +557,11 @@ async def show_place(
 
 
 # =====================================================
-# КНОПКА "ПОДЗВОНИТИ"
-# =====================================================
-
-@router.callback_query(
-    F.data.startswith("call_")
-)
-async def call_place(
-    callback: CallbackQuery
-):
-
-    place_id = callback.data.split(
-        "_",
-        1
-    )[1]
-
-
-    place = get_place_by_id(
-        place_id
-    )
-
-
-    if not place:
-
-        await callback.answer(
-            "Місце не знайдено."
-        )
-
-        return
-
-
-    phone = str(
-        place.get(
-            "Телефон",
-            ""
-        )
-    ).strip()
-
-
-    if not phone:
-
-        await callback.answer(
-            "📞 Номер телефону відсутній."
-        )
-
-        return
-
-
-    name = str(
-        place.get(
-            "Назва",
-            "Relax Vinnytsia"
-        )
-    ).strip()
-
-
-    # =================================================
-    # НАДСИЛАЄМО КОНТАКТ TELEGRAM
-    # =================================================
-
-    await callback.message.answer_contact(
-        phone_number=phone,
-        first_name=name
-    )
-
-
-    await callback.answer(
-        "📞 Номер телефону"
-    )
-
-
-# =====================================================
 # НАЗАД
 # =====================================================
 
-@router.callback_query(
-    F.data == "back"
-)
-async def back(
-    callback: CallbackQuery
-):
+@router.callback_query(F.data == "back")
+async def back(callback: CallbackQuery):
 
     try:
 
@@ -772,4 +602,3 @@ async def stats(message: Message):
         f"{users_count()}",
         parse_mode="HTML"
     )
-```
