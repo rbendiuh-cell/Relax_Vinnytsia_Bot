@@ -269,7 +269,6 @@ async def year_round_pool(message: Message):
 # =====================================================
 # КАРТА
 # =====================================================
-
 @router.message(F.text == "🗺 Карта")
 async def map_places(message: Message):
 
@@ -278,25 +277,27 @@ async def map_places(message: Message):
             [
                 InlineKeyboardButton(
                     text="🗺 Відкрити карту",
-                    url=(
-                        "https://rbendiuh-cell.github.io/"
-                        "Relax_Vinnytsia_Bot/map/"
-                    ),
+                    url="https://rbendiuh-cell.github.io/Relax_Vinnytsia_Bot/map/"
                 )
             ]
         ]
     )
 
     await message.answer(
-        "🗺 <b>Relax Vinnytsia</b>\n\n"
-        "Інтерактивна карта місць відпочинку "
-        "у Вінниці та Вінницькій області.\n\n"
-        "👇 Натисніть кнопку:",
+        "🗺 <b>Relax Vinnytsia — карта місць</b>\n\n"
+        "На карті можна переглядати всі місця "
+        "відпочинку та використовувати фільтри.\n\n"
+        "📍 Поруч зі мною\n"
+        "🏊 Басейни\n"
+        "🛁 Чани\n"
+        "🎣 Риболовля\n"
+        "🏡 Альтанки\n"
+        "🏠 Будинки\n"
+        "🧖 Сауни\n\n"
+        "👇 Натисніть кнопку нижче:",
         parse_mode="HTML",
-        reply_markup=keyboard,
+        reply_markup=keyboard
     )
-
-
 # =====================================================
 # ПРО БОТА
 # =====================================================
